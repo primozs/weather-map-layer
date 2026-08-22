@@ -5,6 +5,7 @@ export { omProtocol } from './om-protocol';
 export {
 	getValueFromLatLong,
 	clearBlockCache,
+	clearOmProtocolState,
 	getRanges,
 	getProtocolInstance
 } from './om-protocol-state';

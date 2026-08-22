@@ -61,6 +61,12 @@ export const getProtocolInstance = (settings: OmProtocolSettings): OmProtocolIns
 
 export const clearBlockCache = async (): Promise<void> => {
 	await omProtocolInstance?.omFileReader.cache.clear();
+};
+
+/** Full protocol reset: block cache + in-memory tile states (layer teardown / domain switch). */
+export const clearOmProtocolState = async (): Promise<void> => {
+	await omProtocolInstance?.omFileReader.cache.clear();
+	omProtocolInstance?.omFileReader.resetActiveOmUrl();
 	omProtocolInstance?.stateByKey.clear();
 };
 

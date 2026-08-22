@@ -50,6 +50,8 @@ export class WeatherMapLayerFileReader {
 	readonly cache: BlockCache;
 	readonly config: Required<Omit<FileReaderConfig, 'cache'>>;
 	private readonly allDerivationRules: VariableDerivationRule[];
+	/** Last `.om` URL passed to setToOmFile — used to drop stale blocks on file switch. */
+	private activeOmUrl: string | undefined;
 
 	constructor(config: FileReaderConfig = {}) {
 		this.config = {
@@ -65,6 +67,10 @@ export class WeatherMapLayerFileReader {
 	}
 
 	async setToOmFile(omUrl: string): Promise<void> {
+		if (this.activeOmUrl !== undefined && this.activeOmUrl !== omUrl) {
+			await this.cache.clear();
+		}
+		this.activeOmUrl = omUrl;
 		this.dispose();
 		const s3Backend = new OmHttpBackend({
 			url: omUrl,
@@ -240,6 +246,11 @@ export class WeatherMapLayerFileReader {
 		}
 
 		delete this.reader;
+	}
+
+	/** Reset file tracking after a full protocol reset (layer teardown). */
+	resetActiveOmUrl(): void {
+		this.activeOmUrl = undefined;
 	}
 }
 
