@@ -6,6 +6,7 @@ export { isSeamlessDomain, getConcreteDomainValue, selectSeamlessLayers } from '
 export {
 	getValueFromLatLong,
 	clearBlockCache,
+	clearOmProtocolState,
 	clearBackends,
 	getRanges,
 	getProtocolInstance
