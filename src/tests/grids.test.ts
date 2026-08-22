@@ -16,6 +16,9 @@ import type {
 
 const dmiDomain = domainOptions.find((d) => d.value === 'dmi_harmonie_arome_europe');
 const knmiDomain = domainOptions.find((d) => d.value === 'knmi_harmonie_arome_europe');
+const arsoNwpDomain = domainOptions.find((d) => d.value === 'arso_nwp_1h');
+const soaringAlpsDomain = domainOptions.find((d) => d.value === 'soaring_alps');
+const meteoswissCh1Domain = domainOptions.find((d) => d.value === 'meteoswiss_icon_ch1');
 
 test('Test LambertConformalConicProjection for DMI', () => {
 	const projectedGrid = dmiDomain?.grid as AnyProjectionGridData;
@@ -43,6 +46,18 @@ test('Test RotatedLatLon for KNMI', () => {
 
 	expect(proj.forward(39.671, -25.421997)[0]).toBe(13.716985366241445);
 	expect(proj.forward(39.671, -25.421997)[1]).toBe(13.617348599940314);
+});
+
+test('Stenar ARSO NWP grid dimensions', () => {
+	const grid = arsoNwpDomain?.grid as RegularGridData;
+	expect(grid.nx).toBe(111);
+	expect(grid.ny).toBe(71);
+	expect(grid.latMin).toBe(44.642);
+	expect(grid.lonMin).toBe(11.625);
+});
+
+test('Stenar soaring_alps grid matches meteoswiss_icon_ch1', () => {
+	expect(soaringAlpsDomain?.grid).toEqual(meteoswissCh1Domain?.grid);
 });
 
 // Example grid data

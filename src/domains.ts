@@ -1285,5 +1285,174 @@ export const domainOptions: Array<Domain> = [
 		},
 		time_interval: 'hourly',
 		model_interval: '3_hourly'
+	},
+
+	// ARSO (Stenar + Vedra spatial)
+	{
+		value: 'arso_rain_radar_5min',
+		label: 'ARSO rain radar 5 min',
+		grid: {
+			type: 'regular',
+			nx: 4000,
+			ny: 2060,
+			latMin: 44.6699,
+			lonMin: 12.1,
+			dx: (17.438665 - 12.1) / (4000 - 1),
+			dy: (47.418663 - 44.6699) / (2060 - 1),
+			zoom: 7.5
+		},
+		time_interval: '15_minute',
+		model_interval: '6_hourly'
+	},
+	{
+		value: 'arso_public_inca_30min',
+		label: 'ARSO INCA 30 min',
+		grid: {
+			type: 'projectedFromGeographicOrigin',
+			nx: 401,
+			ny: 301,
+			latitude: 44.688,
+			longitude: 12.235001,
+			dx: 1000,
+			dy: 1000,
+			projection: {
+				name: 'LambertConformalConicProjection',
+				λ0: 14.815002,
+				ϕ0: 46.12,
+				ϕ1: 46.12,
+				ϕ2: 46.12,
+				radius: 6371229
+			},
+			zoom: 7
+		},
+		time_interval: '15_minute',
+		model_interval: 'hourly'
+	},
+	{
+		value: 'arso_public_inca_1h',
+		label: 'ARSO INCA 1 h',
+		grid: {
+			type: 'projectedFromGeographicOrigin',
+			nx: 401,
+			ny: 301,
+			latitude: 44.688,
+			longitude: 12.235001,
+			dx: 1000,
+			dy: 1000,
+			projection: {
+				name: 'LambertConformalConicProjection',
+				λ0: 14.815002,
+				ϕ0: 46.12,
+				ϕ1: 46.12,
+				ϕ2: 46.12,
+				radius: 6371229
+			},
+			zoom: 7
+		},
+		time_interval: 'hourly',
+		model_interval: 'hourly'
+	},
+	{
+		value: 'arso_inca_30min',
+		label: 'ARSO INCA 30 min',
+		grid: {
+			type: 'projectedFromGeographicOrigin',
+			nx: 401,
+			ny: 301,
+			latitude: 44.688,
+			longitude: 12.235001,
+			dx: 1000,
+			dy: 1000,
+			projection: {
+				name: 'LambertConformalConicProjection',
+				λ0: 14.815002,
+				ϕ0: 46.12,
+				ϕ1: 46.12,
+				ϕ2: 46.12,
+				radius: 6371229
+			},
+			zoom: 7
+		},
+		time_interval: '15_minute',
+		model_interval: 'hourly'
+	},
+	{
+		value: 'arso_inca_1h',
+		label: 'ARSO INCA 1 h',
+		grid: {
+			type: 'projectedFromGeographicOrigin',
+			nx: 401,
+			ny: 301,
+			latitude: 44.688,
+			longitude: 12.235001,
+			dx: 1000,
+			dy: 1000,
+			projection: {
+				name: 'LambertConformalConicProjection',
+				λ0: 14.815002,
+				ϕ0: 46.12,
+				ϕ1: 46.12,
+				ϕ2: 46.12,
+				radius: 6371229
+			},
+			zoom: 7
+		},
+		time_interval: 'hourly',
+		model_interval: 'hourly'
+	},
+	{
+		value: 'arso_cvis_1h',
+		label: 'ARSO CVIS 1 h',
+		grid: {
+			type: 'regular',
+			nx: 111,
+			ny: 71,
+			latMin: 44.642,
+			lonMin: 11.625,
+			dx: 0.057,
+			dy: 0.04,
+			zoom: 5.5
+		},
+		time_interval: 'hourly',
+		model_interval: 'hourly'
+	},
+	{
+		value: 'arso_nwp_1h',
+		label: 'ARSO NWP 1 h',
+		grid: {
+			type: 'regular',
+			nx: 111,
+			ny: 71,
+			latMin: 44.642,
+			lonMin: 11.625,
+			dx: 0.057,
+			dy: 0.04,
+			zoom: 5.5
+		},
+		time_interval: 'hourly',
+		model_interval: '6_hourly'
+	},
+
+	// Soaring Alps (Stenar only — omit on vedra branch)
+	{
+		value: 'soaring_alps',
+		label: 'Soaring Alps',
+		grid: {
+			type: 'projectedFromProjectedOrigin',
+			nx: 1089,
+			ny: 705,
+			latitudeProjectionOrigin: -4.06,
+			longitudeProjectionOrigin: -6.46,
+			dx: 0.01,
+			dy: 0.01,
+			zoom: 5.2,
+			projection: {
+				rotatedLat: 43.0,
+				rotatedLon: 190.0,
+				name: 'RotatedLatLonProjection'
+			}
+		},
+		time_interval: 'hourly',
+		model_interval: '3_hourly'
 	}
 ];
