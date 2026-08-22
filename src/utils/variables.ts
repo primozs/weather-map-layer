@@ -26,7 +26,7 @@ export const variableOptions = [
 	{ value: 'carbon_dioxide', label: 'Carbon Dioxide' },
 	{ value: 'carbon_monoxide', label: 'Carbon Monoxide' },
 
-	{ value: 'categorical_freezing_rain', label: 'Categorical Freezing Rain' },
+	{ value: 'crossability', label: 'Crossability' },
 
 	{ value: 'cloud_base', label: 'Cloud Base' },
 	{ value: 'cloud_cover', label: 'Cloud Cover' },
@@ -54,6 +54,7 @@ export const variableOptions = [
 
 	{ value: 'dust', label: 'Dust' },
 
+	{ value: 'flyability', label: 'Flyability' },
 	{ value: 'freezing_level_height', label: 'Freezing Level Height' },
 	{ value: 'freezing_rain_probability', label: 'Freezing Rain Probability' },
 
@@ -127,6 +128,7 @@ export const variableOptions = [
 
 	{ value: 'rain', label: 'Rain' },
 	{ value: 'rain_probability', label: 'Rain Probability' },
+	{ value: 'radar_reflectivity', label: 'Radar Reflectivity' },
 
 	{ value: 'roughness_length', label: 'Roughness Length' },
 
@@ -173,6 +175,8 @@ export const variableOptions = [
 	{ value: 'snowfall_water_equivalent_mean', label: 'Snowfall Water Equivalent Mean' },
 	{ value: 'snowfall_water_equivalent_spread', label: 'Snowfall Water Equivalent Spread' },
 
+	{ value: 'soaring_layer_depth', label: 'Soaring Layer Depth' },
+
 	{ value: 'sunshine_duration', label: 'Sunshine Duration' },
 	{ value: 'sunshine_duration_anomaly', label: 'Sunshine Duration Anomaly' },
 	{ value: 'sunshine_duration_mean', label: 'Sunshine Duration Mean' },
@@ -210,6 +214,8 @@ export const variableOptions = [
 	{ value: 'temperature_min6h_2m_anomaly', label: 'Temperature Min 6h (2m) Anomaly' },
 	{ value: 'temperature_min6h_2m_mean', label: 'Temperature Min 6h (2m) Mean' },
 
+	{ value: 'thermal_velocity', label: 'Thermal Velocity' },
+
 	{ value: 'tertiary_swell_wave_direction', label: 'Tertiary Swell Wave Direction' },
 	{ value: 'tertiary_swell_wave_height', label: 'Tertiary Swell Wave Height & Direction' },
 	{ value: 'tertiary_swell_wave_period', label: 'Tertiary Swell Wave Period' },
@@ -230,6 +236,8 @@ export const variableOptions = [
 	{ value: 'uv_index_clear_sky', label: 'UV Index Clear Sky' },
 
 	{ value: 'visibility', label: 'Visibility' },
+
+	{ value: 'xc_flying_potential', label: 'XC Flying Potential' },
 
 	{ value: 'wave_height', label: 'Wave Height & Direction' }, // combined
 	{ value: 'wave_direction', label: 'Wave Height & Direction' }, // combined

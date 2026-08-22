@@ -6,6 +6,7 @@ import { parseUrlComponents } from './utils/parse-url';
 import { GridFactory } from './grids';
 import { WeatherMapLayerFileReader } from './om-file-reader';
 import { normalizeUrl } from './om-protocol';
+import { RADAR_RAIN_MIN_DBZ } from './utils/custom-domain-scales';
 
 import type {
 	Bounds,
@@ -38,6 +39,17 @@ const STALE_THRESHOLD_MS = 1 * 60 * 1000;
 
 // THIS is shared global state. The protocol can be added only once with different settings!
 let omProtocolInstance: OmProtocolInstance | undefined = undefined;
+
+const ARSO_RADAR_NODATA_DBZ = -34.5;
+
+function normalizeReadValues(data: Data, dataOptions: DataIdentityOptions): void {
+	if (!data.values) return;
+	if (dataOptions.variable === 'radar_reflectivity') {
+		data.values = data.values.map((v) =>
+			v <= ARSO_RADAR_NODATA_DBZ || v < RADAR_RAIN_MIN_DBZ ? Number.NaN : v
+		);
+	}
+}
 
 export const getProtocolInstance = (settings: OmProtocolSettings): OmProtocolInstance => {
 	if (omProtocolInstance) {
@@ -184,6 +196,8 @@ export const ensureData = async (
 					state.ranges,
 					controller.signal
 				);
+
+				normalizeReadValues(data, state.dataOptions);
 
 				if (postReadCallback) {
 					postReadCallback(omFileReader, data, state);

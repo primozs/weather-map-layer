@@ -1291,6 +1291,9 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_rain_radar_5min',
 		label: 'ARSO rain radar 5 min',
+		catalog_mode: 'concrete_om',
+		spatial_run_interval: '6_hourly',
+		default_variable: 'radar_reflectivity',
 		grid: {
 			type: 'regular',
 			nx: 4000,
@@ -1307,6 +1310,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_public_inca_30min',
 		label: 'ARSO INCA 30 min',
+		catalog_mode: 'concrete_om',
 		grid: {
 			type: 'projectedFromGeographicOrigin',
 			nx: 401,
@@ -1331,6 +1335,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_public_inca_1h',
 		label: 'ARSO INCA 1 h',
+		catalog_mode: 'concrete_om',
 		grid: {
 			type: 'projectedFromGeographicOrigin',
 			nx: 401,
@@ -1355,6 +1360,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_inca_30min',
 		label: 'ARSO INCA 30 min',
+		catalog_mode: 'concrete_om',
 		grid: {
 			type: 'projectedFromGeographicOrigin',
 			nx: 401,
@@ -1379,6 +1385,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_inca_1h',
 		label: 'ARSO INCA 1 h',
+		catalog_mode: 'concrete_om',
 		grid: {
 			type: 'projectedFromGeographicOrigin',
 			nx: 401,
@@ -1403,6 +1410,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_cvis_1h',
 		label: 'ARSO CVIS 1 h',
+		catalog_mode: 'concrete_om',
 		grid: {
 			type: 'regular',
 			nx: 111,
@@ -1419,6 +1427,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'arso_nwp_1h',
 		label: 'ARSO NWP 1 h',
+		catalog_mode: 'concrete_om',
 		grid: {
 			type: 'regular',
 			nx: 111,
@@ -1437,6 +1446,7 @@ export const domainOptions: Array<Domain> = [
 	{
 		value: 'soaring_alps',
 		label: 'Soaring Alps',
+		default_variable: 'thermal_velocity',
 		grid: {
 			type: 'projectedFromProjectedOrigin',
 			nx: 1089,
@@ -1454,5 +1464,27 @@ export const domainOptions: Array<Domain> = [
 		},
 		time_interval: 'hourly',
 		model_interval: '3_hourly'
+	},
+
+	// Paraglidable (Stenar only — omit on vedra branch)
+	{
+		value: 'paraglidable_flyability',
+		label: 'Paraglidable',
+		catalog_mode: 'concrete_om',
+		valid_time_filename: 'underscore',
+		skip_in_progress_catalog: true,
+		default_variable: 'flyability',
+		grid: {
+			type: 'regular',
+			nx: 178,
+			ny: 139,
+			latMin: 31.952,
+			lonMin: -10.55,
+			dx: 0.25,
+			dy: 0.25,
+			zoom: 5
+		},
+		time_interval: 'daily',
+		model_interval: '6_hourly'
 	}
 ];

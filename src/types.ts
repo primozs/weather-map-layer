@@ -303,6 +303,14 @@ export interface Domain {
 	grid: GridData;
 	time_interval: ModelDt;
 	model_interval: ModelUpdateInterval;
+	/** Default: latest.json catalog (standard Open-Meteo). */
+	catalog_mode?: 'latest_json' | 'concrete_om';
+	/** Floor spatial run folders to this interval (e.g. radar 6h buckets). */
+	spatial_run_interval?: ModelUpdateInterval;
+	/** Valid-time .om basename. Default iso `YYYY-MM-DDTHHMM`. */
+	valid_time_filename?: 'iso' | 'underscore';
+	skip_in_progress_catalog?: boolean;
+	default_variable?: string;
 }
 
 export type ModelDt =

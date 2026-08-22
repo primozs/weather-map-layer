@@ -67,9 +67,10 @@ export class WeatherMapLayerFileReader {
 	}
 
 	async setToOmFile(omUrl: string): Promise<void> {
-		if (this.activeOmUrl !== undefined && this.activeOmUrl !== omUrl) {
-			await this.cache.clear();
-		}
+		// Cache keys are namespaced by file URL (OmHttpBackend cacheKeyString /
+		// URL-hashed bigint). Do not clear the shared block cache on switch —
+		// that wiped neighbor-prefetch for the next timestep and forced cold
+		// reads on large domains. LRU / BrowserBlockCache eviction bounds memory.
 		this.activeOmUrl = omUrl;
 		this.dispose();
 		const s3Backend = new OmHttpBackend({

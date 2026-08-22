@@ -1,5 +1,7 @@
 import type { ColorScales } from '../types';
 
+import { CUSTOM_DOMAIN_COLOR_SCALES } from './custom-domain-scales';
+
 export const COLOR_SCALES: ColorScales = {
 	albedo: {
 		type: 'breakpoint',
@@ -497,5 +499,6 @@ export const COLOR_SCALES: ColorScales = {
 			[124, 2, 83, 1],
 			[116, 5, 5, 1]
 		]
-	}
+	},
+	...CUSTOM_DOMAIN_COLOR_SCALES
 };
