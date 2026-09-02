@@ -211,7 +211,16 @@ export const parseMetaJson = async (omUrl: string, domainOptions?: Domain[]) => 
 		} else if (capture === 'valid_times') {
 			if (amountAndUnit) {
 				const index = Number(amountAndUnit);
-				date = new Date(metaResult.valid_times[index]);
+				const raw = metaResult.valid_times?.[index];
+				if (raw === undefined) {
+					throw new Error(
+						`valid_times index ${index} out of range (len=${metaResult.valid_times?.length ?? 0})`
+					);
+				}
+				date = new Date(raw);
+				if (Number.isNaN(date.getTime())) {
+					throw new Error(`Invalid valid_times[${index}]: ${raw}`);
+				}
 			} else {
 				throw new Error('Missing valid times index');
 			}
@@ -237,7 +246,7 @@ export const parseMetaJson = async (omUrl: string, domainOptions?: Domain[]) => 
 		'om://' +
 			parsedOmUrl.href.replace(
 				`${meta}.json`,
-				`${modelRun.getUTCFullYear()}/${pad(modelRun.getUTCMonth() + 1)}/${pad(modelRun.getUTCDate())}/${pad(modelRun.getUTCHours())}00Z/${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}T${pad(date.getUTCHours())}00.om`
+				`${modelRun.getUTCFullYear()}/${pad(modelRun.getUTCMonth() + 1)}/${pad(modelRun.getUTCDate())}/${pad(modelRun.getUTCHours())}${pad(modelRun.getUTCMinutes())}Z/${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}.om`
 			) +
 			tileSuffix
 	);
