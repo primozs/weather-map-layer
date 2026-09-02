@@ -1,8 +1,12 @@
 import { pad } from '../utils';
 import { parseMetaJson, parseUrlComponents } from '../utils/parse-url';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('URL Parsing', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
 	describe('parseMetaJson', () => {
 		it('resolves latest.json to current model run URL', async () => {
 			const url =
@@ -23,6 +27,48 @@ describe('URL Parsing', () => {
 			const parsedUrl = await parseMetaJson(url);
 
 			expect(parsedUrl).not.toContain('in-progress');
+		});
+
+		it('preserves UTC minutes in resolved .om filename for 5-minute frames', async () => {
+			const catalog = {
+				reference_time: '2026-09-02T12:00:00Z',
+				valid_times: ['2026-09-02T12:00Z', '2026-09-02T12:05Z', '2026-09-02T14:45Z'],
+				variables: ['radar_reflectivity']
+			};
+			vi.stubGlobal(
+				'fetch',
+				vi.fn().mockResolvedValue({
+					json: async () => catalog
+				})
+			);
+
+			const parsedUrl = await parseMetaJson(
+				'https://meteo.test/data_spatial/arso_min/latest.json?time_step=valid_times_2&variable=radar_reflectivity'
+			);
+
+			expect(parsedUrl).toContain('/2026/09/02/1200Z/2026-09-02T1445.om');
+			expect(parsedUrl).not.toContain('T1400.om');
+			expect(parsedUrl).not.toContain('NaN');
+		});
+
+		it('throws when valid_times index is out of range', async () => {
+			const catalog = {
+				reference_time: '2026-09-02T12:00:00Z',
+				valid_times: ['2026-09-02T12:00Z'],
+				variables: ['radar_reflectivity']
+			};
+			vi.stubGlobal(
+				'fetch',
+				vi.fn().mockResolvedValue({
+					json: async () => catalog
+				})
+			);
+
+			await expect(
+				parseMetaJson(
+					'https://meteo.test/data_spatial/arso_oob/latest.json?time_step=valid_times_99&variable=radar_reflectivity'
+				)
+			).rejects.toThrow(/valid_times index/);
 		});
 	});
 
