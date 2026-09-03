@@ -59,7 +59,11 @@ export const omProtocol = async (
 
 	const instance = getProtocolInstance(settings);
 
-	const url = await normalizeUrl(params.url, settings.domainOptions);
+	const url = await normalizeUrl(
+		params.url,
+		settings.domainOptions,
+		settings.metaFetchAllowedOrigins
+	);
 	// Resolved against the reader's effective config: the reader is built from
 	// the first call's `fileReaderConfig`, so what rendering takes from the
 	// derivation rules (barbs only for a wind speed) follows how data is read.

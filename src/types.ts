@@ -100,6 +100,11 @@ export interface OmProtocolSettings {
 	 * cross-fading between timesteps). @default 2
 	 */
 	maxStatesWithData?: number;
+	/**
+	 * When set, `latest.json` / `in-progress.json` fetches must be https and
+	 * match one of these origins (e.g. `config.WEATHER_API` origin).
+	 */
+	metaFetchAllowedOrigins?: string[];
 
 	/**
 	 * Optional custom resolver for URL settings.

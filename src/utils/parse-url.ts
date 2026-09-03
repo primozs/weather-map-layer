@@ -137,7 +137,97 @@ export const deltaTimeHoursAt = (
 	return step / 3_600_000;
 };
 
-export const parseMetaJson = async (omUrl: string, domainOptions?: Domain[]) => {
+/** When set, meta.json fetches must be https and match one of these origins. */
+export function assertMetaJsonFetchAllowed(
+	jsonUrl: string,
+	allowedOrigins: readonly string[] | undefined
+): void {
+	if (!allowedOrigins?.length) return;
+	let u: URL;
+	try {
+		u = new URL(jsonUrl);
+	} catch {
+		throw new Error(`meta.json host not allowed: invalid URL`);
+	}
+	if (u.protocol !== 'https:' || !allowedOrigins.includes(u.origin)) {
+		throw new Error(`meta.json host not allowed: ${u.protocol}//${u.host}`);
+	}
+	if (!u.pathname.includes('/data_spatial/')) {
+		throw new Error(`meta.json path not allowed: ${u.pathname}`);
+	}
+}
+
+
+function assertMetaCatalog(data: unknown, jsonUrl: string): DomainMetaDataJson {
+	if (!data || typeof data !== 'object' || Array.isArray(data)) {
+		throw new Error(`Invalid meta.json: expected catalog object (${jsonUrl})`);
+	}
+	const catalog = data as DomainMetaDataJson;
+	if (
+		typeof catalog.reference_time !== 'string' ||
+		Number.isNaN(Date.parse(catalog.reference_time))
+	) {
+		throw new Error(`Invalid meta.json: bad reference_time (${jsonUrl})`);
+	}
+	if (!Array.isArray(catalog.valid_times) || catalog.valid_times.length === 0) {
+		throw new Error(`Invalid meta.json: missing valid_times (${jsonUrl})`);
+	}
+	if (catalog.valid_times.length > 10_000) {
+		throw new Error(`Invalid meta.json: valid_times too long (${jsonUrl})`);
+	}
+	for (const t of catalog.valid_times) {
+		if (typeof t !== 'string' || Number.isNaN(Date.parse(t))) {
+			throw new Error(`Invalid meta.json: bad valid_times entry (${jsonUrl})`);
+		}
+	}
+	return catalog;
+}
+
+function fetchMetaJson(
+	jsonUrl: string,
+	bypassCache: boolean,
+	allowedOrigins?: readonly string[]
+): Promise<DomainMetaDataJson> {
+	assertMetaJsonFetchAllowed(jsonUrl, allowedOrigins);
+	if (!bypassCache) {
+		const hit = metaDataCache.get(jsonUrl);
+		if (hit) return hit;
+	}
+	const pending = fetch(jsonUrl, { cache: 'no-store' })
+		.then(async (response) => {
+			if (!response.ok) {
+				throw new Error(`Failed to fetch meta.json (${response.status}): ${jsonUrl}`);
+			}
+			return assertMetaCatalog(await response.json(), jsonUrl);
+		})
+		.catch((err) => {
+			if (metaDataCache.get(jsonUrl) === pending) metaDataCache.delete(jsonUrl);
+			throw err;
+		});
+	metaDataCache.set(jsonUrl, pending);
+	setTimeout(() => {
+		if (metaDataCache.get(jsonUrl) === pending) metaDataCache.delete(jsonUrl);
+	}, META_CACHE_MS);
+	return pending;
+}
+
+async function catalogForValidTimesIndex(
+	jsonUrl: string,
+	catalog: DomainMetaDataJson,
+	requestedIndex: number,
+	allowedOrigins?: readonly string[]
+): Promise<DomainMetaDataJson> {
+	if (catalog.valid_times?.[requestedIndex] !== undefined) return catalog;
+	metaDataCache.delete(jsonUrl);
+	return fetchMetaJson(jsonUrl, true, allowedOrigins);
+}
+
+
+export const parseMetaJson = async (
+	omUrl: string,
+	domainOptions?: Domain[],
+	allowedOrigins?: readonly string[]
+) => {
 	let date = new Date();
 	const url = omUrl.replace('om://', '');
 
@@ -148,20 +238,7 @@ export const parseMetaJson = async (omUrl: string, domainOptions?: Domain[]) => 
 	// original (seamless) key so duplicate requests are still deduplicated.
 	const fetchJsonUrl = resolveJsonFetchUrl(jsonUrl, domainOptions);
 
-	if (!metaDataCache.has(jsonUrl)) {
-		const metaRequest = fetch(fetchJsonUrl).then((response) => {
-			if (!response.ok) {
-				throw new Error(`Failed to fetch ${fetchJsonUrl}: ${response.status}`);
-			}
-			return response.json() as Promise<DomainMetaDataJson>;
-		});
-		// Evict failed fetches immediately so the next request retries instead of
-		// hitting the cached rejection for the rest of the 60 seconds.
-		metaRequest.catch(() => metaDataCache.delete(jsonUrl));
-		metaDataCache.set(jsonUrl, metaRequest);
-		setTimeout(() => metaDataCache.delete(jsonUrl), 60000); // delete after 60 seconds
-	}
-	const metaResult = await metaDataCache.get(jsonUrl)!;
+	let metaResult = await fetchMetaJson(fetchJsonUrl, false, allowedOrigins);
 
 	const { meta } = url.match(DOMAIN_META_REGEX)?.groups as {
 		meta: string; // E.G. latest | in-progress
@@ -252,9 +329,13 @@ export const parseMetaJson = async (omUrl: string, domainOptions?: Domain[]) => 
 	);
 };
 
-export const normalizeUrl = async (url: string, domainOptions?: Domain[]): Promise<string> => {
+export const normalizeUrl = async (
+	url: string,
+	domainOptions?: Domain[],
+	allowedOrigins?: readonly string[]
+): Promise<string> => {
 	if (url.includes('.json')) {
-		return parseMetaJson(url, domainOptions);
+		return parseMetaJson(url, domainOptions, allowedOrigins);
 	}
 	return url;
 };
