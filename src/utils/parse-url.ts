@@ -10,6 +10,26 @@ import {
 
 import { DomainMetaDataJson, ParsedUrlComponents, TileIndex } from '../types';
 
+/** When set, meta.json fetches must be https and match one of these origins. */
+export function assertMetaJsonFetchAllowed(
+	jsonUrl: string,
+	allowedOrigins: readonly string[] | undefined
+): void {
+	if (!allowedOrigins?.length) return;
+	let u: URL;
+	try {
+		u = new URL(jsonUrl);
+	} catch {
+		throw new Error(`meta.json host not allowed: invalid URL`);
+	}
+	if (u.protocol !== 'https:' || !allowedOrigins.includes(u.origin)) {
+		throw new Error(`meta.json host not allowed: ${u.protocol}//${u.host}`);
+	}
+	if (!u.pathname.includes('/data_spatial/')) {
+		throw new Error(`meta.json path not allowed: ${u.pathname}`);
+	}
+}
+
 const parseTileIndex = (url: string): { tileIndex: TileIndex | null; remainingUrl: string } => {
 	const match = url.match(TILE_SUFFIX_REGEX);
 	if (!match) {
@@ -70,8 +90,76 @@ const getModifiedAmount = (amount: number, modifier = '+') => {
 
 // {meta}.json files are cached for 60 seconds
 const metaDataCache = new Map<string, Promise<DomainMetaDataJson>>();
+const META_CACHE_MS = 60_000;
 
-export const parseMetaJson = async (omUrl: string) => {
+function assertMetaCatalog(data: unknown, jsonUrl: string): DomainMetaDataJson {
+	if (!data || typeof data !== 'object' || Array.isArray(data)) {
+		throw new Error(`Invalid meta.json: expected catalog object (${jsonUrl})`);
+	}
+	const catalog = data as DomainMetaDataJson;
+	if (
+		typeof catalog.reference_time !== 'string' ||
+		Number.isNaN(Date.parse(catalog.reference_time))
+	) {
+		throw new Error(`Invalid meta.json: bad reference_time (${jsonUrl})`);
+	}
+	if (!Array.isArray(catalog.valid_times) || catalog.valid_times.length === 0) {
+		throw new Error(`Invalid meta.json: missing valid_times (${jsonUrl})`);
+	}
+	if (catalog.valid_times.length > 10_000) {
+		throw new Error(`Invalid meta.json: valid_times too long (${jsonUrl})`);
+	}
+	for (const t of catalog.valid_times) {
+		if (typeof t !== 'string' || Number.isNaN(Date.parse(t))) {
+			throw new Error(`Invalid meta.json: bad valid_times entry (${jsonUrl})`);
+		}
+	}
+	return catalog;
+}
+
+function fetchMetaJson(
+	jsonUrl: string,
+	bypassCache: boolean,
+	allowedOrigins?: readonly string[]
+): Promise<DomainMetaDataJson> {
+	assertMetaJsonFetchAllowed(jsonUrl, allowedOrigins);
+	if (!bypassCache) {
+		const hit = metaDataCache.get(jsonUrl);
+		if (hit) return hit;
+	}
+	const pending = fetch(jsonUrl, { cache: 'no-store' })
+		.then(async (response) => {
+			if (!response.ok) {
+				throw new Error(`Failed to fetch meta.json (${response.status}): ${jsonUrl}`);
+			}
+			return assertMetaCatalog(await response.json(), jsonUrl);
+		})
+		.catch((err) => {
+			if (metaDataCache.get(jsonUrl) === pending) metaDataCache.delete(jsonUrl);
+			throw err;
+		});
+	metaDataCache.set(jsonUrl, pending);
+	setTimeout(() => {
+		if (metaDataCache.get(jsonUrl) === pending) metaDataCache.delete(jsonUrl);
+	}, META_CACHE_MS);
+	return pending;
+}
+
+async function catalogForValidTimesIndex(
+	jsonUrl: string,
+	catalog: DomainMetaDataJson,
+	requestedIndex: number,
+	allowedOrigins?: readonly string[]
+): Promise<DomainMetaDataJson> {
+	if (catalog.valid_times?.[requestedIndex] !== undefined) return catalog;
+	metaDataCache.delete(jsonUrl);
+	return fetchMetaJson(jsonUrl, true, allowedOrigins);
+}
+
+export const parseMetaJson = async (
+	omUrl: string,
+	allowedOrigins?: readonly string[]
+) => {
 	let date = new Date();
 	const url = omUrl.replace('om://', '');
 
@@ -79,19 +167,11 @@ export const parseMetaJson = async (omUrl: string) => {
 	const jsonIndex = url.indexOf('.json');
 	const jsonUrl = url.slice(0, jsonIndex + '.json'.length);
 
-	if (!metaDataCache.has(jsonUrl)) {
-		metaDataCache.set(
-			jsonUrl,
-			fetch(jsonUrl).then((response) => response.json() as Promise<DomainMetaDataJson>)
-		);
-		setTimeout(() => metaDataCache.delete(jsonUrl), 60000); // delete after 60 seconds
-	}
-	const metaResult = await metaDataCache.get(jsonUrl)!;
+	let metaResult = await fetchMetaJson(jsonUrl, false, allowedOrigins);
 
 	const { meta } = url.match(DOMAIN_META_REGEX)?.groups as {
 		meta: string; // E.G. latest | in-progress
 	};
-	const modelRun = new Date(metaResult.reference_time);
 
 	const parsedOmUrl = new URL(url);
 	const timeStep = parsedOmUrl.searchParams.get('time_step');
@@ -131,13 +211,22 @@ export const parseMetaJson = async (omUrl: string) => {
 			}
 		} else if (capture === 'valid_times') {
 			if (amountAndUnit) {
-				const index = Number(amountAndUnit);
-				const raw = metaResult.valid_times?.[index];
-				if (raw === undefined) {
-					throw new Error(
-						`valid_times index ${index} out of range (len=${metaResult.valid_times?.length ?? 0})`
-					);
+				const requested = Number(amountAndUnit);
+				if (!Number.isFinite(requested) || requested < 0) {
+					throw new Error(`Invalid valid_times index: ${amountAndUnit}`);
 				}
+				metaResult = await catalogForValidTimesIndex(
+					jsonUrl,
+					metaResult,
+					requested,
+					allowedOrigins
+				);
+				const times = metaResult.valid_times;
+				if (!times?.length) {
+					throw new Error(`valid_times index ${requested} out of range (len=0)`);
+				}
+				const index = Math.min(requested, times.length - 1);
+				const raw = times[index];
 				date = new Date(raw);
 				if (Number.isNaN(date.getTime())) {
 					throw new Error(`Invalid valid_times[${index}]: ${raw}`);
@@ -150,6 +239,7 @@ export const parseMetaJson = async (omUrl: string) => {
 		// if no time_step defined, then take the first valid time
 		date = new Date(metaResult.valid_times[0]);
 	}
+	const modelRun = new Date(metaResult.reference_time);
 	parsedOmUrl.searchParams.delete('time_step'); // delete time_step urlSearchParam since it has no effect on map
 
 	// need to return a URL that is not percent encoded

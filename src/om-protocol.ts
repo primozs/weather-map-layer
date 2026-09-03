@@ -54,7 +54,7 @@ export const omProtocol = async (
 
 	const instance = getProtocolInstance(settings);
 
-	const url = await normalizeUrl(params.url);
+	const url = await normalizeUrl(params.url, settings);
 	const request = parseRequest(url, settings);
 
 	const state = getOrCreateState(
@@ -103,10 +103,13 @@ export const omProtocol = async (
 	}
 };
 
-export const normalizeUrl = async (url: string): Promise<string> => {
+export const normalizeUrl = async (
+	url: string,
+	settings: OmProtocolSettings = defaultOmProtocolSettings
+): Promise<string> => {
 	let normalized = url;
 	if (url.includes('.json')) {
-		normalized = await parseMetaJson(normalized);
+		normalized = await parseMetaJson(normalized, settings.metaFetchAllowedOrigins);
 	}
 	return normalized;
 };

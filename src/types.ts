@@ -78,6 +78,12 @@ export interface OmProtocolSettings {
 	clippingOptions: ClippingOptions;
 
 	/**
+	 * When set, `latest.json` / `in-progress.json` fetches must be https and
+	 * match one of these origins (e.g. `config.WEATHER_API` origin).
+	 */
+	metaFetchAllowedOrigins?: string[];
+
+	/**
 	 * Optional custom resolver for URL settings.
 	 * Receives parsed URL components and returns resolved settings.
 	 * Default implementation uses standard query param parsing.
