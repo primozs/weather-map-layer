@@ -1590,6 +1590,26 @@ export const domainOptions: Array<Domain> = [
 		model_interval: '6_hourly'
 	},
 	{
+		value: 'world_radar_0p1_5min',
+		label: 'World rain radar 0.1° 5 min',
+		catalog_mode: 'concrete_om',
+		spatial_run_interval: '6_hourly',
+		default_variable: 'radar_reflectivity',
+		grid: {
+			type: 'regular',
+			nx: 3030,
+			ny: 620,
+			// OM row 0 is north (BBOX south=10, north≈72). Same flip pattern as world_radar_5min.
+			latMin: 10 + (620 - 1) * 0.1,
+			lonMin: -176,
+			dx: 0.1,
+			dy: -0.1,
+			zoom: 1
+		},
+		time_interval: '15_minute',
+		model_interval: '6_hourly'
+	},
+	{
 		value: 'arso_public_inca_30min',
 		label: 'ARSO INCA 30 min',
 		catalog_mode: 'concrete_om',
