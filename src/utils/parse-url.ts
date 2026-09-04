@@ -287,16 +287,29 @@ export const parseMetaJson = async (
 			}
 		} else if (capture === 'valid_times') {
 			if (amountAndUnit) {
-				const index = Number(amountAndUnit);
-				const raw = metaResult.valid_times?.[index];
-				if (raw === undefined) {
+				const requested = Number(amountAndUnit);
+				if (!Number.isFinite(requested) || requested < 0) {
+					throw new Error(`Invalid valid_times index: ${amountAndUnit}`);
+				}
+				metaResult = await catalogForValidTimesIndex(
+					fetchJsonUrl,
+					metaResult,
+					requested,
+					allowedOrigins
+				);
+				const times = metaResult.valid_times;
+				if (!times?.length) {
+					throw new Error(`valid_times index ${requested} out of range (len=0)`);
+				}
+				if (requested >= times.length) {
 					throw new Error(
-						`valid_times index ${index} out of range (len=${metaResult.valid_times?.length ?? 0})`
+						`valid_times index ${requested} out of range (len=${times.length})`
 					);
 				}
+				const raw = times[requested];
 				date = new Date(raw);
 				if (Number.isNaN(date.getTime())) {
-					throw new Error(`Invalid valid_times[${index}]: ${raw}`);
+					throw new Error(`Invalid valid_times[${requested}]: ${raw}`);
 				}
 			} else {
 				throw new Error('Missing valid times index');
