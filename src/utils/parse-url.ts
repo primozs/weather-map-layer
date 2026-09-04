@@ -225,11 +225,15 @@ export const parseMetaJson = async (
 				if (!times?.length) {
 					throw new Error(`valid_times index ${requested} out of range (len=0)`);
 				}
-				const index = Math.min(requested, times.length - 1);
-				const raw = times[index];
+				if (requested >= times.length) {
+					throw new Error(
+						`valid_times index ${requested} out of range (len=${times.length})`
+					);
+				}
+				const raw = times[requested];
 				date = new Date(raw);
 				if (Number.isNaN(date.getTime())) {
-					throw new Error(`Invalid valid_times[${index}]: ${raw}`);
+					throw new Error(`Invalid valid_times[${requested}]: ${raw}`);
 				}
 			} else {
 				throw new Error('Missing valid times index');

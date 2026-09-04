@@ -82,7 +82,7 @@ describe('URL Parsing', () => {
 			expect(parsedUrl).not.toContain('NaN');
 		});
 
-		it('clamps valid_times index that stays out of range after refetch', async () => {
+		it('rejects valid_times index that stays out of range after refetch', async () => {
 			const catalog = {
 				reference_time: '2026-09-02T12:00:00Z',
 				valid_times: ['2026-09-02T12:00Z'],
@@ -96,12 +96,11 @@ describe('URL Parsing', () => {
 				})
 			);
 
-			const parsedUrl = await parseMetaJson(
-				'https://meteo.test/data_spatial/arso_clamp/latest.json?time_step=valid_times_99&variable=radar_reflectivity'
-			);
-
-			expect(parsedUrl).toContain('/2026/09/02/1200Z/2026-09-02T1200.om');
-			expect(parsedUrl).not.toContain('NaN');
+			await expect(
+				parseMetaJson(
+					'https://meteo.test/data_spatial/arso_clamp/latest.json?time_step=valid_times_99&variable=radar_reflectivity'
+				)
+			).rejects.toThrow(/valid_times index 99 out of range \(len=1\)/);
 		});
 
 		it('refetches latest.json without HTTP cache when valid_times grew', async () => {
