@@ -60,6 +60,7 @@ describe('URL Parsing', () => {
 			vi.stubGlobal(
 				'fetch',
 				vi.fn().mockResolvedValue({
+					ok: true,
 					json: async () => catalog
 				})
 			);
@@ -82,6 +83,7 @@ describe('URL Parsing', () => {
 			vi.stubGlobal(
 				'fetch',
 				vi.fn().mockResolvedValue({
+					ok: true,
 					json: async () => catalog
 				})
 			);

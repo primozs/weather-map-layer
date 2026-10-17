@@ -73,6 +73,7 @@ const getModifiedAmount = (amount: number, modifier = '+') => {
 
 // {meta}.json files are cached for 60 seconds
 const metaDataCache = new Map<string, Promise<DomainMetaDataJson>>();
+const META_CACHE_MS = 60_000;
 
 /**
  * Swaps the domain segment of an om file or metadata URL, wherever the path
