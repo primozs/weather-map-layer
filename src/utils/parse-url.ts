@@ -159,7 +159,7 @@ export function assertMetaJsonFetchAllowed(
 }
 
 
-function assertMetaCatalog(data: unknown, jsonUrl: string): DomainMetaDataJson {
+export function assertMetaCatalog(data: unknown, jsonUrl: string): DomainMetaDataJson {
 	if (!data || typeof data !== 'object' || Array.isArray(data)) {
 		throw new Error(`Invalid meta.json: expected catalog object (${jsonUrl})`);
 	}
@@ -194,8 +194,11 @@ function fetchMetaJson(
 		const hit = metaDataCache.get(jsonUrl);
 		if (hit) return hit;
 	}
-	const pending = fetch(jsonUrl, { cache: 'no-store' })
+	const pending = fetch(jsonUrl, { cache: 'no-store', redirect: 'manual' })
 		.then(async (response) => {
+			if (response.status >= 300 && response.status < 400) {
+				throw new Error(`meta.json redirect refused (${response.status}): ${jsonUrl}`);
+			}
 			if (!response.ok) {
 				throw new Error(`Failed to fetch meta.json (${response.status}): ${jsonUrl}`);
 			}
@@ -235,8 +238,7 @@ export const parseMetaJson = async (
 	// jsonUrl should be everything until ".json" of the current url (inclusive)
 	const jsonIndex = url.indexOf('.json');
 	const jsonUrl = url.slice(0, jsonIndex + '.json'.length);
-	// For seamless domains, fetch from the base layer's domain; cache under the
-	// original (seamless) key so duplicate requests are still deduplicated.
+	// For seamless domains, fetch (and cache) under the concrete base-layer URL.
 	const fetchJsonUrl = resolveJsonFetchUrl(jsonUrl, domainOptions);
 
 	let metaResult = await fetchMetaJson(fetchJsonUrl, false, allowedOrigins);

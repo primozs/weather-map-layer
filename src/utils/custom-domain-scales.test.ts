@@ -31,4 +31,20 @@ describe('custom domain color scales', () => {
 			}
 		}
 	});
+
+	it('keeps Stenar boundary_layer_height over COLOR_SCALES_WITH_ALIASES', () => {
+		const scale = getColorScale('boundary_layer_height', false, COLOR_SCALES_WITH_ALIASES);
+		expect(scale.unit).toBe('m');
+		expect(scale.type).toBe('breakpoint');
+		if (scale.type !== 'breakpoint') return;
+		expect(scale.breakpoints).toEqual([0, 500, 1000, 1500, 2000, 2500, 3000]);
+	});
+
+	it('keeps Stenar sensible_heat_flux over COLOR_SCALES_WITH_ALIASES', () => {
+		const scale = getColorScale('sensible_heat_flux', false, COLOR_SCALES_WITH_ALIASES);
+		expect(scale.unit).toBe('W/m²');
+		expect(scale.type).toBe('breakpoint');
+		if (scale.type !== 'breakpoint') return;
+		expect(scale.breakpoints).toEqual([0, 50, 100, 150, 200, 300, 400]);
+	});
 });

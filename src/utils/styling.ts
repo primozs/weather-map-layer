@@ -1,4 +1,5 @@
 import { COLOR_SCALES } from './color-scales';
+import { CUSTOM_DOMAIN_COLOR_SCALES } from './custom-domain-scales';
 import { pressureHpaToIsaHeight } from './isa-height';
 
 import type {
@@ -198,7 +199,9 @@ export const COLOR_SCALES_WITH_ALIASES: ColorScales = {
 	wave_period: COLOR_SCALES['swell_period'],
 	swell_wave_period: COLOR_SCALES['swell_period'],
 	secondary_swell_wave_period: COLOR_SCALES['swell_period'],
-	tertiary_swell_wave_period: COLOR_SCALES['swell_period']
+	tertiary_swell_wave_period: COLOR_SCALES['swell_period'],
+	// Stenar custom domains win over upstream aliases (BLH / SHF / radar / soaring).
+	...CUSTOM_DOMAIN_COLOR_SCALES
 };
 
 const getOptionalColorScale = (

@@ -62,7 +62,8 @@ export function normalizeArsoRadarReflectivity(values: Float32Array): void {
 	}
 }
 
-function normalizeReadValues(data: Data, dataOptions: DataIdentityOptions): void {
+/** Exported for tests: ARSO radar mask only — not world_radar / other reflectivity. */
+export function normalizeReadValues(data: Data, dataOptions: DataIdentityOptions): void {
 	if (!data.values) return;
 	if (
 		dataOptions.variable === 'radar_reflectivity' &&
