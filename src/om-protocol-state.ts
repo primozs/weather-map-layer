@@ -48,14 +48,27 @@ const STALE_THRESHOLD_MS = 1 * 60 * 1000;
 // THIS is shared global state. The protocol can be added only once with different settings!
 let omProtocolInstance: OmProtocolInstance | undefined = undefined;
 
+/** ARSO rain-radar fill; not applied to world_radar / other reflectivity domains. */
 const ARSO_RADAR_NODATA_DBZ = -34.5;
+
+/**
+ * In-place mask for ARSO radar_reflectivity: nodata + sub-rain → NaN.
+ * Exported for unit tests.
+ */
+export function normalizeArsoRadarReflectivity(values: Float32Array): void {
+	for (let i = 0; i < values.length; i++) {
+		const v = values[i]!;
+		if (v <= ARSO_RADAR_NODATA_DBZ || v < RADAR_RAIN_MIN_DBZ) values[i] = Number.NaN;
+	}
+}
 
 function normalizeReadValues(data: Data, dataOptions: DataIdentityOptions): void {
 	if (!data.values) return;
-	if (dataOptions.variable === 'radar_reflectivity') {
-		data.values = data.values.map((v) =>
-			v <= ARSO_RADAR_NODATA_DBZ || v < RADAR_RAIN_MIN_DBZ ? Number.NaN : v
-		);
+	if (
+		dataOptions.variable === 'radar_reflectivity' &&
+		dataOptions.domain.value.startsWith('arso_')
+	) {
+		normalizeArsoRadarReflectivity(data.values);
 	}
 }
 
@@ -83,15 +96,19 @@ export const getProtocolInstance = (settings: OmProtocolSettings): OmProtocolIns
 	return instance;
 };
 
+/** Same as upstream: drop block cache and per-URL tile states. */
 export const clearBlockCache = async (): Promise<void> => {
 	await omProtocolInstance?.omFileReader.cache.clear();
+	omProtocolInstance?.stateByKey.clear();
 };
 
-/** Full protocol reset: block cache + backends + tile states (layer teardown / domain switch). */
+/**
+ * Full protocol reset for layer teardown / domain switch: `clearBlockCache` +
+ * backends. Prefer this over calling `clearBlockCache` alone when remounting.
+ */
 export const clearOmProtocolState = async (): Promise<void> => {
-	await omProtocolInstance?.omFileReader.cache.clear();
+	await clearBlockCache();
 	omProtocolInstance?.omFileReader.clearBackends();
-	omProtocolInstance?.stateByKey.clear();
 };
 
 /** Drop all memoized HTTP backends, so the next read re-fetches file metadata. */

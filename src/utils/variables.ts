@@ -27,7 +27,7 @@ export const variableOptions = [
 	{ value: 'carbon_dioxide', label: 'Carbon Dioxide' },
 	{ value: 'carbon_monoxide', label: 'Carbon Monoxide' },
 
-	{ value: 'crossability', label: 'Crossability' },
+	{ value: 'categorical_freezing_rain', label: 'Categorical Freezing Rain' },
 
 	{ value: 'cloud_base', label: 'Cloud Base' },
 	{ value: 'cloud_cover', label: 'Cloud Cover' },
@@ -42,6 +42,8 @@ export const variableOptions = [
 	{ value: 'convective_cloud_base', label: 'Convective Cloud Base' },
 	{ value: 'convective_cloud_top', label: 'Convective Cloud Top' },
 	{ value: 'convective_inhibition', label: 'Convective Inhibition' },
+
+	{ value: 'crossability', label: 'Crossability' },
 
 	{ value: 'dew_point', label: 'Dew Point' },
 	{ value: 'dew_point_2m', label: 'Dew Point (2m)' },
